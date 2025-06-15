@@ -416,10 +416,10 @@ fi
 print_info "Packaging modified extension..."
 cd "$EXT_DIR"
 if command -v vsce &> /dev/null; then
-    vsce package --no-dependencies -o "../../../$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix" 2>/dev/null
+    vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "../../../$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix" 2>/dev/null
 else
     # Try with npx
-    npx vsce package --no-dependencies -o "../../../$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix" 2>/dev/null
+    npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "../../../$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix" 2>/dev/null
 fi
 
 if [ $? -ne 0 ]; then
