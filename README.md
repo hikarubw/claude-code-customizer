@@ -32,17 +32,11 @@ cd claude-code-resume-output
 ./install.sh
 ```
 
-### Option 2: Modify Your Existing Extension
-```bash
-# Modify the currently installed extension
-./install-claude-resume-mod.sh cursor
-```
 
 ## 📦 What's in This Repository
 
 ### Scripts
 - **`create-claude-resume.sh`** - Main script to create customized extensions
-- **`install-claude-resume-mod.sh`** - Script to modify existing installations
 
 ### Documentation
 - **[Script Usage Guide](docs/SCRIPTS_README.md)** - Detailed guide for using the scripts
@@ -78,14 +72,6 @@ The scripts modify the Claude Code extension by:
 ./create-claude-resume.sh ~/Downloads/claude-code-1.0.30.vsix
 ```
 
-### Modify Existing Installation
-```bash
-# For Cursor
-./install-claude-resume-mod.sh cursor
-
-# For VS Code
-./install-claude-resume-mod.sh vscode
-```
 
 ## 🛠 Requirements
 
