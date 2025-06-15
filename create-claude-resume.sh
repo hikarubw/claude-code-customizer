@@ -13,8 +13,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-WORK_DIR="temp_extension_work"
-OUTPUT_DIR="claude-code-resume-output"
+WORK_DIR="$SCRIPT_DIR/temp_extension_work"
+OUTPUT_DIR="$SCRIPT_DIR/claude-code-resume-output"
 NPM_PACKAGE="@anthropic-ai/claude-code"
 VSIX_LOCATION_IN_PACKAGE="vendor/claude-code.vsix"
 
@@ -415,7 +415,7 @@ fi
 # Package the extension
 print_info "Packaging modified extension..."
 cd "$EXT_DIR"
-VSIX_OUTPUT="$SCRIPT_DIR/$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix"
+VSIX_OUTPUT="$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix"
 if command -v vsce &> /dev/null; then
     vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>/dev/null
 else
