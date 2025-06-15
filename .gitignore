@@ -1,0 +1,48 @@
+# Build outputs
+*.vsix
+claude-code-resume-output/
+
+# Temporary files
+temp_extension_work/
+*.tgz
+*.tar.gz
+*.zip
+*.tmp
+
+# Backup files
+*.backup
+*.bak
+*~
+*.orig
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+.project
+.settings/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependencies (if any future development)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Test outputs
+test-output/
+coverage/
+
+# Local environment
+.env
+.env.local
