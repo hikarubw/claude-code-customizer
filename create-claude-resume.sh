@@ -71,20 +71,31 @@ get_latest_version() {
 download_npm_package() {
     local version=$1
     
-    npm pack "$NPM_PACKAGE@$version" >/dev/null 2>&1
+    # Run npm pack and capture output
+    local pack_output=$(npm pack "$NPM_PACKAGE@$version" 2>&1)
+    if [ $? -ne 0 ]; then
+        return 1
+    fi
     
-    # The npm pack command outputs the filename, we need to find it
-    local tarball_name=""
+    # The npm pack command outputs the filename
+    local tarball_name=$(echo "$pack_output" | tail -n 1)
     
-    # Try different possible names
-    for name in "anthropic-ai-claude-code-${version}.tgz" "claude-code-${version}.tgz" "@anthropic-ai-claude-code-${version}.tgz"; do
-        if [ -f "$name" ]; then
-            tarball_name="$name"
-            break
-        fi
-    done
+    # If we didn't get a filename, try to find it
+    if [ ! -f "$tarball_name" ]; then
+        # Try different possible names
+        for name in "anthropic-ai-claude-code-${version}.tgz" "claude-code-${version}.tgz" "@anthropic-ai-claude-code-${version}.tgz"; do
+            if [ -f "$name" ]; then
+                tarball_name="$name"
+                break
+            fi
+        done
+    fi
     
-    echo "$tarball_name"
+    if [ -f "$tarball_name" ]; then
+        echo "$tarball_name"
+    else
+        return 1
+    fi
 }
 
 # Function to modify package.json
@@ -278,6 +289,17 @@ echo "Claude Code Resume Extension Generator"
 echo "====================================="
 echo ""
 
+# Check for required commands
+if ! command -v npm &> /dev/null; then
+    print_error "npm is required but not found. Please install Node.js and npm."
+    exit 1
+fi
+
+if ! command -v unzip &> /dev/null; then
+    print_error "unzip is required but not found. Please install unzip."
+    exit 1
+fi
+
 # Determine mode of operation
 if [ -n "$LOCAL_VSIX" ]; then
     # Local VSIX mode
@@ -301,7 +323,11 @@ fi
 
 # Clean up any previous work
 print_info "Cleaning up previous work directories..."
-rm -rf "$WORK_DIR" "$OUTPUT_DIR"
+rm -rf "$WORK_DIR"
+# Only clean output directory if using default, not custom
+if [ "$OUTPUT_DIR" = "$SCRIPT_DIR/claude-code-resume-output" ]; then
+    rm -rf "$OUTPUT_DIR"
+fi
 rm -f *-claude-code-*.tgz anthropic-ai-claude-code-*.tgz claude-code-*.tgz
 
 # Create directories
@@ -324,7 +350,7 @@ if [ "$MODE" = "download" ]; then
     # Download the npm package
     print_info "Downloading $NPM_PACKAGE@$VERSION..."
     TARBALL=$(download_npm_package "$VERSION")
-    if [ -z "$TARBALL" ]; then
+    if [ $? -ne 0 ] || [ -z "$TARBALL" ]; then
         print_error "Failed to download npm package"
         exit 1
     fi
@@ -418,12 +444,24 @@ fi
 # Package the extension
 print_info "Packaging modified extension..."
 cd "$EXT_DIR"
-VSIX_OUTPUT="$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix"
+
+# Ensure output directory exists (with absolute path)
+mkdir -p "$OUTPUT_DIR"
+
+# Use absolute path for VSIX output
+if [[ "$OUTPUT_DIR" = /* ]]; then
+    # Already absolute
+    VSIX_OUTPUT="$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix"
+else
+    # Make it absolute
+    VSIX_OUTPUT="$SCRIPT_DIR/$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix"
+fi
+
 if command -v vsce &> /dev/null; then
-    vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>/dev/null
+    vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>&1
 else
     # Try with npx
-    npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>/dev/null
+    npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>&1
 fi
 
 if [ $? -ne 0 ]; then
