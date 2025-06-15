@@ -377,7 +377,7 @@ cd "$EXT_DIR"
 # Verify we have the required files
 if [ ! -f "package.json" ] || [ ! -f "dist/extension.js" ]; then
     print_error "Required files not found in extension"
-    cd ../../..
+    cd "$SCRIPT_DIR"
     rm -rf "$WORK_DIR"
     exit 1
 fi
@@ -398,7 +398,7 @@ modify_extension_js
 create_readme "$VERSION"
 
 # Go back to original directory
-cd ../../..
+cd "$SCRIPT_DIR"
 
 # Check if vsce is installed
 if ! command -v vsce &> /dev/null; then
@@ -408,29 +408,30 @@ if ! command -v vsce &> /dev/null; then
         print_warning "Failed to install vsce globally, trying locally..."
         cd "$EXT_DIR"
         npm install @vscode/vsce --no-save >/dev/null 2>&1
-        cd ../../..
+        cd "$SCRIPT_DIR"
     fi
 fi
 
 # Package the extension
 print_info "Packaging modified extension..."
 cd "$EXT_DIR"
+VSIX_OUTPUT="$SCRIPT_DIR/$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix"
 if command -v vsce &> /dev/null; then
-    vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "../../../$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix" 2>/dev/null
+    vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>/dev/null
 else
     # Try with npx
-    npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "../../../$OUTPUT_DIR/claude-code-resume-${VERSION}.vsix" 2>/dev/null
+    npx vsce package --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>/dev/null
 fi
 
 if [ $? -ne 0 ]; then
     print_error "Failed to package extension"
-    cd ../../..
+    cd "$SCRIPT_DIR"
     rm -rf "$WORK_DIR"
     exit 1
 fi
 
 # Go back and create install script
-cd ../../..
+cd "$SCRIPT_DIR"
 cd "$OUTPUT_DIR"
 create_install_script "$VERSION"
 cd ..
