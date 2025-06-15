@@ -458,10 +458,10 @@ else
 fi
 
 if command -v vsce &> /dev/null; then
-    vsce package --yes --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>&1
+    vsce package --skip-license --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>&1
 else
     # Try with npx
-    npx vsce package --yes --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>&1
+    npx vsce package --skip-license --no-dependencies --no-git-tag-version --no-update-package-json -o "$VSIX_OUTPUT" 2>&1
 fi
 
 if [ $? -ne 0 ]; then
