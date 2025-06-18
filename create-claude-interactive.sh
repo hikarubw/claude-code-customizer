@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Claude Code Interactive Extension Generator - GLOBAL SCOPE VERSION
-# This version properly makes the dialog function available globally
+# Claude Code Interactive Extension Generator - PORTABLE VERSION
+# This version works on both macOS and Linux
 
 set -e
 
@@ -27,6 +27,15 @@ print_success() {
 
 print_error() {
     echo -e "${RED}✗${NC} $1"
+}
+
+# Detect OS for sed compatibility
+SED_INPLACE() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
 }
 
 # Clean up
@@ -151,9 +160,9 @@ cp dist/extension.js dist/extension.js.tmp
 
 # 1. Update ALL command/context references first
 print_info "Updating all command and context references..."
-sed -i '' 's/"claude-code\./"claude-code-interactive./g' dist/extension.js.tmp
-sed -i '' "s/'claude-code\./'claude-code-interactive./g" dist/extension.js.tmp
-sed -i '' 's/`claude-code\./`claude-code-interactive./g' dist/extension.js.tmp
+SED_INPLACE 's/"claude-code\./"claude-code-interactive./g' dist/extension.js.tmp
+SED_INPLACE "s/'claude-code\./'claude-code-interactive./g" dist/extension.js.tmp
+SED_INPLACE 's/`claude-code\./`claude-code-interactive./g' dist/extension.js.tmp
 
 # 2. Create a wrapper around the entire extension code
 print_info "Creating global dialog function..."
@@ -246,11 +255,11 @@ mv dist/extension.js.tmp2 dist/extension.js.tmp
 print_info "Modifying command execution..."
 
 # First make setTimeout callbacks async
-sed -i '' 's/setTimeout(()=>{/setTimeout(async()=>{/g' dist/extension.js.tmp
+SED_INPLACE 's/setTimeout(()=>{/setTimeout(async()=>{/g' dist/extension.js.tmp
 
 # Then add dialog to command execution - without any parameters
-sed -i '' 's/executeCommand("claude")/executeCommand("claude"+(await selectClaudeOptions()||""))/g' dist/extension.js.tmp
-sed -i '' 's/sendText("claude")/sendText("claude"+(await selectClaudeOptions()||""))/g' dist/extension.js.tmp
+SED_INPLACE 's/executeCommand("claude")/executeCommand("claude"+(await selectClaudeOptions()||""))/g' dist/extension.js.tmp
+SED_INPLACE 's/sendText("claude")/sendText("claude"+(await selectClaudeOptions()||""))/g' dist/extension.js.tmp
 
 # Move modified file back
 mv dist/extension.js.tmp dist/extension.js
