@@ -1,0 +1,123 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  build:
+    name: Build Extension
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+    
+    - name: Install dependencies
+      run: |
+        npm install -g @vscode/vsce
+        npm install -g @anthropic-ai/claude-code
+    
+    - name: Make scripts executable
+      run: chmod +x create-claude-interactive.sh
+    
+    - name: Build extension
+      run: ./create-claude-interactive.sh
+    
+    - name: Rename artifacts
+      run: |
+        cd claude-code-interactive-output
+        VSIX_FILE=$(ls *.vsix)
+        VERSION=${{ github.event.inputs.version || github.ref_name }}
+        OS_NAME="linux"
+        mv "$VSIX_FILE" "claude-code-interactive-${VERSION}-${OS_NAME}.vsix"
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-${{ matrix.os }}
+        path: claude-code-interactive-output/*.vsix
+        if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        pattern: extension-*
+        merge-multiple: true
+        path: ./artifacts
+    
+    - name: Create Release Notes
+      run: |
+        VERSION=${{ github.event.inputs.version || github.ref_name }}
+        cat > release_notes.md << EOF
+        # Claude Code Interactive Extension ${VERSION}
+        
+        ## What's New
+        - Interactive startup dialog for choosing Claude options
+        - VSCode settings configuration support
+        - Support for --resume, --continue, --dangerously-skip-permissions
+        - Custom startup options
+        
+        ## Installation
+        
+        1. Download the appropriate VSIX file for your platform
+        2. Install using:
+           - **VS Code**: \`code --install-extension claude-code-interactive-*.vsix\`
+           - **Cursor**: \`cursor --install-extension claude-code-interactive-*.vsix\`
+        3. Restart your editor
+        
+        ## Configuration
+        
+        Configure in your VSCode settings:
+        \`\`\`json
+        {
+          "claude-code-interactive.startupOptions": [
+            {
+              "label": "Work Mode",
+              "description": "Resume with work directory",
+              "value": "--resume --add-dir ~/work"
+            }
+          ],
+          "claude-code-interactive.skipDialog": false
+        }
+        \`\`\`
+        
+        ## Files
+        - \`claude-code-interactive-${VERSION}-linux.vsix\` - For Linux/macOS/Windows (cross-platform)
+        EOF
+    
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: ${{ github.event.inputs.version || github.ref_name }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: false
+        files: |
+          ./artifacts/*.vsix
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

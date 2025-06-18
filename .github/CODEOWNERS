@@ -1,0 +1,12 @@
+# Default code owner for all files
+* @hikarubw
+
+# GitHub workflows
+.github/ @hikarubw
+
+# Main scripts
+create-claude-*.sh @hikarubw
+
+# Documentation
+*.md @hikarubw
+docs/ @hikarubw

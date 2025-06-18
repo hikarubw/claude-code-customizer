@@ -1,6 +1,11 @@
 # Build outputs
 *.vsix
 claude-code-resume-output/
+claude-code-interactive-output/
+
+# Archived scripts
+archived-scripts/
+archive/
 
 # Temporary files
 temp_extension_work/
