@@ -1,6 +1,6 @@
-# Claude Code Extension Customizer
+# Claude Code Interactive Extension
 
-Tools and scripts to customize the official Claude Code VSCode extension to automatically resume your last session.
+Create an interactive version of the Claude Code VSCode extension with customizable startup options.
 
 ## 📑 Table of Contents
 - [Purpose](#-purpose)
@@ -15,28 +15,29 @@ Tools and scripts to customize the official Claude Code VSCode extension to auto
 
 ## 🎯 Purpose
 
-This repository provides tools to modify the Claude Code extension to run `claude --resume` instead of `claude`, allowing you to:
-- Continue from your last conversation
-- Maintain context between sessions
-- Work more efficiently with Claude Code
+This repository provides a tool to create an interactive version of the Claude Code extension that allows you to:
+- Choose startup options interactively with a dialog picker
+- Configure custom options via VSCode settings
+- Resume your last conversation with `claude --resume`
+- Continue from your last conversation in the current directory with `claude --continue`
+- Skip permissions for faster startup
+- Use any custom CLI options
 
 ## 🚀 Quick Start
-
-### Option 1: Create a Custom Extension
 ```bash
-# Download and customize the latest version
-./create-claude-resume.sh
+# Download and customize with settings-configurable dialog
+./create-claude-interactive.sh
 
 # Install the generated extension
-cd claude-code-resume-output
+cd claude-code-interactive-output
 ./install.sh
 ```
 
 
 ## 📦 What's in This Repository
 
-### Scripts
-- **`create-claude-resume.sh`** - Main script to create customized extensions
+### Script
+- **`create-claude-interactive.sh`** - Creates an interactive extension with configurable options via VSCode settings
 
 ### Documentation
 - **[Script Usage Guide](docs/SCRIPTS_README.md)** - Detailed guide for using the scripts
@@ -44,32 +45,49 @@ cd claude-code-resume-output
 - **[Extension Analysis](docs/EXTENSION_ANALYSIS.md)** - Deep dive into the extension architecture
 - **[Examples](docs/EXAMPLES.md)** - Various customization examples
 
-### Examples & Reference
-- **`examples/resume-extension/`** - Example of a customized extension
-- **`reference/`** - Original extension code for comparison
+### Reference
+- **`reference/`** - Original extension code for comparison (if available)
 
 ## 🔧 How It Works
 
-The scripts modify the Claude Code extension by:
-1. Changing `executeCommand("claude")` → `executeCommand("claude --resume")`
-2. Changing `sendText("claude")` → `sendText("claude --resume"`
-3. Updating the extension ID and name to avoid conflicts
+The `create-claude-interactive.sh` script modifies the Claude Code extension by:
+1. Injecting a dialog picker function that shows startup options
+2. Replacing command execution with user-selected options
+3. Supporting options like `--resume`, `--continue`, `--dangerously-skip-permissions`, or custom input
+4. Adding VSCode settings configuration for custom options
+5. Supporting user-defined startup options via settings.json
+6. Options to remember last choice and set default behavior
+7. Updating the extension ID and name to avoid conflicts
 
 ## 📋 Usage Examples
-
-### Create from Latest Version
 ```bash
-./create-claude-resume.sh
-```
+# Create from latest version with settings support
+./create-claude-interactive.sh
 
-### Create from Specific Version
-```bash
-./create-claude-resume.sh -v 1.0.30
-```
+# Create from specific version
+./create-claude-interactive.sh -v 1.0.24
 
-### Create from Local VSIX File
-```bash
-./create-claude-resume.sh ~/Downloads/claude-code-1.0.30.vsix
+# Create from local VSIX file
+./create-claude-interactive.sh ~/Downloads/claude-code.vsix
+
+# Configure in VSCode settings.json:
+{
+  "claude-code-interactive.startupOptions": [
+    {
+      "label": "Work Mode",
+      "description": "Resume with work directory",
+      "value": "--resume --add-dir ~/work"
+    },
+    {
+      "label": "Personal Project",
+      "description": "Continue in current directory with Opus",
+      "value": "--continue --model opus"
+    }
+  ],
+  "claude-code-interactive.showDefaultOptions": true,
+  "claude-code-interactive.defaultOption": "--continue",
+  "claude-code-interactive.rememberLastChoice": true
+}
 ```
 
 
