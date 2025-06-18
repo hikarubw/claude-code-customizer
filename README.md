@@ -1,5 +1,8 @@
 # Claude Code Interactive Extension
 
+[![CI](https://github.com/hikarubw/claude-code-customizer/actions/workflows/ci.yml/badge.svg)](https://github.com/hikarubw/claude-code-customizer/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 Create an interactive version of the Claude Code VSCode extension with customizable startup options.
 
 ## 📑 Table of Contents

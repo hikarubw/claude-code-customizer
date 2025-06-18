@@ -1,0 +1,133 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Test Extension Builder
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node-version: [18.x, 20.x]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+    
+    - name: Install dependencies
+      run: |
+        npm install -g @vscode/vsce
+        npm install -g @anthropic-ai/claude-code
+    
+    - name: Make scripts executable
+      run: chmod +x create-claude-interactive.sh
+    
+    - name: Test extension creation
+      run: |
+        # Test script execution
+        ./create-claude-interactive.sh -h || true
+        
+        # Test creating extension from latest version
+        ./create-claude-interactive.sh
+        
+        # Verify output
+        test -f claude-code-interactive-output/*.vsix
+        test -f claude-code-interactive-output/install.sh
+        test -f claude-code-interactive-output/README.md
+    
+    - name: Verify extension structure
+      run: |
+        cd claude-code-interactive-output
+        unzip -l *.vsix | grep -E "(package.json|extension.js|claude-logo)"
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: extension-${{ matrix.os }}-node${{ matrix.node-version }}
+        path: claude-code-interactive-output/*.vsix
+        if-no-files-found: error
+
+  lint:
+    name: Lint Scripts
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Install shellcheck
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+    
+    - name: Lint shell scripts
+      run: |
+        find . -name "*.sh" -type f -exec shellcheck {} \; || true
+    
+    - name: Check script permissions
+      run: |
+        # Ensure main scripts are executable
+        test -x create-claude-interactive.sh
+
+  docs:
+    name: Validate Documentation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check markdown files
+      run: |
+        # Check that all referenced docs exist
+        for doc in docs/SCRIPTS_README.md docs/CUSTOMIZATION_GUIDE.md docs/EXTENSION_ANALYSIS.md docs/EXAMPLES.md; do
+          if [ ! -f "$doc" ]; then
+            echo "Warning: Referenced documentation $doc not found"
+          fi
+        done
+    
+    - name: Validate README links
+      run: |
+        # Basic check for broken internal links
+        grep -oP '\[.*?\]\((?!http).*?\)' README.md | while read -r link; do
+          file=$(echo "$link" | grep -oP '(?<=\().*?(?=\))')
+          if [[ "$file" == *"#"* ]]; then
+            file="${file%%#*}"
+          fi
+          if [ -n "$file" ] && [ ! -f "$file" ] && [ ! -d "$file" ]; then
+            echo "Warning: Broken link to $file in README.md"
+          fi
+        done || true
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Run Trivy security scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v3
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'

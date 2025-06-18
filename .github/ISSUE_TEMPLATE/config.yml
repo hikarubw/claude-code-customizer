@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Support
+    url: https://github.com/hikarubw/claude-code-customizer/discussions
+    about: Please ask and answer questions here
+  - name: Documentation
+    url: https://github.com/hikarubw/claude-code-customizer/blob/main/README.md
+    about: Check our documentation for common questions
