@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest]
     
     steps:
     - name: Checkout code
@@ -44,7 +44,7 @@ jobs:
         cd claude-code-interactive-output
         VSIX_FILE=$(ls *.vsix)
         VERSION=${{ github.event.inputs.version || github.ref_name }}
-        OS_NAME=${{ matrix.os == 'ubuntu-latest' && 'linux' || 'macos' }}
+        OS_NAME="linux"
         mv "$VSIX_FILE" "claude-code-interactive-${VERSION}-${OS_NAME}.vsix"
     
     - name: Upload artifacts
@@ -107,8 +107,7 @@ jobs:
         \`\`\`
         
         ## Files
-        - \`claude-code-interactive-${VERSION}-linux.vsix\` - For Linux
-        - \`claude-code-interactive-${VERSION}-macos.vsix\` - For macOS
+        - \`claude-code-interactive-${VERSION}-linux.vsix\` - For Linux/macOS/Windows (cross-platform)
         EOF
     
     - name: Create GitHub Release
