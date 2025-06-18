@@ -35,13 +35,11 @@ jobs:
     
     - name: Test extension creation
       run: |
-        # Test script execution
-        ./create-claude-interactive.sh -h || true
-        
         # Test creating extension from latest version
-        ./create-claude-interactive.sh || true
+        ./create-claude-interactive.sh
         
         # Verify output files exist
+        echo "Checking output directory contents..."
         ls -la claude-code-interactive-output/
         
         # Check for VSIX file
@@ -62,7 +60,7 @@ jobs:
           exit 1
         fi
         
-        echo "All expected files found!"
+        echo "✅ All expected files found!"
     
     - name: Verify extension structure
       run: |
