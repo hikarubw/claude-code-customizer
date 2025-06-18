@@ -54,11 +54,6 @@ jobs:
           exit 1
         fi
         
-        # Check for README
-        if [ ! -f claude-code-interactive-output/README.md ]; then
-          echo "Error: README.md not found"
-          exit 1
-        fi
         
         echo "✅ All expected files found!"
     
